@@ -1,3 +1,12 @@
-from django.shortcuts import render
+from .models import Comment
+from .serializers import CommentSerializer
+from rest_framework import generics
 
-# Create your views here.
+
+class CommentAPIView(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+class CommentUniqueApiView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
