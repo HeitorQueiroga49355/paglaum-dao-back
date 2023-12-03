@@ -9,3 +9,7 @@ class Article(models.Model):
     content = models.TextField(blank=False)
     publication_date = models.DateTimeField(blank=False, default=datetime.now)
     last_edition = models.DateTimeField(blank=False, default=datetime.now)
+    activate = models.BooleanField(default=True)
+
+    def get_publication_date(self):
+        return self.publication_date

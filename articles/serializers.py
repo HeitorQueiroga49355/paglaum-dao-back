@@ -14,4 +14,5 @@ class ArticleSerializer(serializers.ModelSerializer):
             'content',
             'publication_date',
             'last_edition',
+            'activate',
         )
