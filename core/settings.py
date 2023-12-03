@@ -28,6 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = 'account.User'
 
 # Application definition
 
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "articles",
     "comments",
+    "account",
 ]
 
 MIDDLEWARE = [
@@ -73,7 +75,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "core.wsgi.application"
-
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
