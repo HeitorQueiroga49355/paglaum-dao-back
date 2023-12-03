@@ -1,12 +1,7 @@
 from .models import Comment
 from .serializers import CommentSerializer
-from rest_framework import generics
+from rest_framework import viewsets
 
-
-class CommentAPIView(generics.ListCreateAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-
-class CommentUniqueApiView(generics.RetrieveUpdateDestroyAPIView):
+class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer

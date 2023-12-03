@@ -11,6 +11,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             'title',
             'subtitle',
             'author',
+            'content',
             'publication_date',
             'last_edition',
         )

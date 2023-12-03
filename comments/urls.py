@@ -1,7 +1,5 @@
-from django.urls import path
-from .views import CommentAPIView, CommentUniqueApiView
+from .views import CommentViewSet
+from rest_framework.routers import SimpleRouter
 
-urlpatterns = [
-    path('comment/', CommentAPIView.as_view(), name="comments"),
-    path('comment/<int:pk>', CommentUniqueApiView.as_view(), name="comments"),
-]
+router = SimpleRouter()
+router.register('comments', CommentViewSet)
