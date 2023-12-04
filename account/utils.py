@@ -9,7 +9,7 @@ def send_confirmation_email(email, token_id, user_id):
     message = get_template('confirmation_email.txt').render(data)
     send_mail(subject='Please, confirm email',
               message=message,
-              from_email='admin@paglaum.com',
+              from_email='paglaumdaoback@hotmail.com',
               recipient_list=[email],
               fail_silently=True,
     )

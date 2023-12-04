@@ -6,8 +6,6 @@ from django.db import models
 from django.utils import timezone
 import uuid
 
-uuid4 = uuid.uuid4()
-
 class UserManager(BaseUserManager):
     def _create_user(self, username, email, password, is_staff, is_superuser, **extra_fields):
         now = timezone.now()
@@ -58,10 +56,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         return self.first_name
 
-    def email_user(self, subject, message, from_email=None):
-        send_mail(subject, message, from_email, [self.email])
-
 class EmailConfirmationToken(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    id = models.CharField(primary_key=True, max_length=64, default="", editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)

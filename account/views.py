@@ -7,8 +7,10 @@ from rest_framework.permissions import IsAuthenticated
 from datetime import datetime
 from .utils import send_confirmation_email
 from django.shortcuts import render
+import hashlib
 
 JWT_authenticator = JWTAuthentication()
+
 
 class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
@@ -22,7 +24,7 @@ class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
         except Exception as error:
             print(error)
             return Response({'detail': 'Authorization bearer token not provided'}, status=403)
-    
+
 
 class UserListCreate(generics.ListCreateAPIView):
     queryset = User.objects.all()
@@ -41,7 +43,7 @@ class UserListCreate(generics.ListCreateAPIView):
                 missing_fields['first_name'] = ['This field is required']
             if 'last_name' not in request.data:
                 missing_fields['last_name'] = ['This field is required']
-            if(len(missing_fields) > 0):
+            if (len(missing_fields) > 0):
                 return Response(missing_fields, status=400)
             new_user = User.objects.create_user(
                 request.data['username'], request.data['email'], request.data['password'])
@@ -61,14 +63,19 @@ class UserListCreate(generics.ListCreateAPIView):
             return Response({'detail': 'Authorization bearer token not provided'}, status=403)
         return super().get(request, *args, **kwargs)
 
+
 class SendEmailConfirmationTokenAPIView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
-        user = request.user    
-        token = EmailConfirmationToken.objects.create(user=user)
-        send_confirmation_email(email=user.email, token_id=token.pk, user_id=user.pk)
+        user = request.user
+        message_to_hash = str("security1234" + user.email)
+        token = hashlib.sha256(message_to_hash.encode('utf-8')).hexdigest()
+        EmailConfirmationToken.objects.create(id=str(token), user=user)
+        send_confirmation_email(
+            email=user.email, token_id=token, user_id=user.pk)
         return Response(data=None, status=201)
+
 
 def confirm_email_view(request):
     token_id = request.GET.get('token_id', None)
