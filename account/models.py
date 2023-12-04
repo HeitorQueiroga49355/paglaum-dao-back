@@ -4,6 +4,9 @@ from django.utils.translation import gettext_lazy as _
 import re
 from django.db import models
 from django.utils import timezone
+import uuid
+
+uuid4 = uuid.uuid4()
 
 class UserManager(BaseUserManager):
     def _create_user(self, username, email, password, is_staff, is_superuser, **extra_fields):
@@ -27,8 +30,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     username = models.CharField(_('username'), max_length=15, unique=True, help_text=_('Required. 15 characters or fewer. Letters, numbers and @/./+/-/_ characters'),
                                 validators=[validators.RegexValidator(re.compile('^[\w.@+-]+$'), _('Enter a valid username.'), _('invalid'))])
-    first_name = models.CharField(_('first name'), max_length=30)
-    last_name = models.CharField(_('last name'), max_length=30)
+    first_name = models.CharField(_('first name'), max_length=30, blank=False)
+    last_name = models.CharField(_('last name'), max_length=30, blank=False)
     email = models.EmailField(_('email address'), max_length=255, unique=True)
     is_staff = models.BooleanField(_('staff status'), default=False, help_text=_(
         'Designates whether the user can log into this admin site.'))
@@ -57,3 +60,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def email_user(self, subject, message, from_email=None):
         send_mail(subject, message, from_email, [self.email])
+
+class EmailConfirmationToken(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)

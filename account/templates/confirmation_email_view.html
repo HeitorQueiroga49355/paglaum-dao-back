@@ -1,0 +1,15 @@
+{% block main %}
+
+{% if is_trusty == True %}
+<div>
+    Your email is confirmed
+</div>
+
+{% else %}
+<div>
+    Your confirmation token is expired. Please request new one.
+</div>
+
+{% endif %}
+
+{% endblock main %}

@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import User
+from .models import User, EmailConfirmationToken
 
 
 @admin.register(User)
-class CommentAdmin(admin.ModelAdmin):
+class UserAdmin(admin.ModelAdmin):
     list_display = (
         'username',
         'first_name',
@@ -13,4 +13,12 @@ class CommentAdmin(admin.ModelAdmin):
         'is_active',
         'date_joined',
         'is_trusty',
+    )
+
+@admin.register(EmailConfirmationToken)
+class EmailTokenAdmin(admin.ModelAdmin):
+    list_display = (
+       'id',
+       'created_at',
+       'user',
     )
