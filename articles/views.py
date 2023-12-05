@@ -4,9 +4,9 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import datetime
-from account.models import User
 
 JWT_authenticator = JWTAuthentication()
+
 
 class ArticleListCreate(generics.ListCreateAPIView):
     queryset = Article.objects.all()
@@ -16,9 +16,9 @@ class ArticleListCreate(generics.ListCreateAPIView):
         try:
             user, validated_token = JWT_authenticator.authenticate(request)
             request.data.update({'author': user.id})
+            return super().post(request, *args, **kwargs)
         except:
             return Response({'detail': 'Authorization bearer token not provided'}, status=403)
-        return super().post(request, *args, **kwargs)
 
 
 class ArticleRetrievePatchDelete(generics.RetrieveUpdateDestroyAPIView):
@@ -34,17 +34,17 @@ class ArticleRetrievePatchDelete(generics.RetrieveUpdateDestroyAPIView):
             obj_to_path = self.get_queryset().filter(id=self.kwargs.get('pk'))
             if (len(obj_to_path) != 1):
                 return Response({'detail': 'object not found'}, status=404)
-
-            request.data.update(
-                {'publication_date': obj_to_path[0].get_publication_date()})
+            else:
+                request.data.update(
+                    {'publication_date': obj_to_path[0].get_publication_date()})
+                return super().patch(request, *args, **kwargs)
         except Exception as error:
             return Response({'detail': error}, status=403)
-        return super().patch(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         try:
             user, validated_token = JWT_authenticator.authenticate(request)
-            if(user.is_staff):
+            if (user.is_staff):
                 request.data.update({'activate': False})
                 return super().patch(request, *args, **kwargs)
             else:
