@@ -54,14 +54,12 @@ class UserListCreate(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         try:
             user, validated_token = JWT_authenticator.authenticate(request)
-            logged_user = self.get_queryset().all().filter(email=user)
-            if logged_user[0].is_staff != True:
-                Response(
-                    {"detail": "You don't have permission for this"}, status=401)
+            if user.is_staff:
+                return super().get(request, *args, **kwargs)
+            else:
+                return Response({"detail": "You don't have permission for this"}, status=401)
         except Exception as error:
-            print(error)
             return Response({'detail': 'Authorization bearer token not provided'}, status=403)
-        return super().get(request, *args, **kwargs)
 
 
 class SendEmailConfirmationTokenAPIView(generics.CreateAPIView):

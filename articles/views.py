@@ -4,9 +4,9 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import datetime
+from account.models import User
 
 JWT_authenticator = JWTAuthentication()
-
 
 class ArticleListCreate(generics.ListCreateAPIView):
     queryset = Article.objects.all()
@@ -44,7 +44,10 @@ class ArticleRetrievePatchDelete(generics.RetrieveUpdateDestroyAPIView):
     def delete(self, request, *args, **kwargs):
         try:
             user, validated_token = JWT_authenticator.authenticate(request)
-            request.data.update({'activate': False})
+            if(user.is_staff):
+                request.data.update({'activate': False})
+                return super().patch(request, *args, **kwargs)
+            else:
+                return Response({'detail': 'Authorization bearer token not provided'}, status=403)
         except:
             return Response({'detail': 'Authorization bearer token not provided'}, status=403)
-        return super().patch(request, *args, **kwargs)
