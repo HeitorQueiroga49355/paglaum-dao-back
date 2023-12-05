@@ -15,4 +15,5 @@ class ArticleSerializer(serializers.ModelSerializer):
             'publication_date',
             'last_edition',
             'activate',
+            'cover_image',
         )

@@ -10,6 +10,8 @@ class Article(models.Model):
     publication_date = models.DateTimeField(blank=False, default=datetime.now)
     last_edition = models.DateTimeField(blank=False, default=datetime.now)
     activate = models.BooleanField(default=True)
+    cover_image = models.ImageField(blank=True)
+    is_emphasis = models.BooleanField(default=False)
 
     def get_publication_date(self):
         return self.publication_date

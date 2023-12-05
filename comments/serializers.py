@@ -11,4 +11,6 @@ class CommentSerializer(serializers.ModelSerializer):
             'text',
             'author',
             'active',
+            'publication_date',
+            'last_edition'
         )

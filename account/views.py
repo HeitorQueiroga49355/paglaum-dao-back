@@ -22,7 +22,6 @@ class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
             logged_user = self.get_queryset().all().filter(email=user)
             return Response(UserSerializer(logged_user[0]).data)
         except Exception as error:
-            print(error)
             return Response({'detail': 'Authorization bearer token not provided'}, status=403)
 
 
