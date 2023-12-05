@@ -30,7 +30,6 @@ class ArticleRetrievePatchDelete(generics.RetrieveUpdateDestroyAPIView):
             user, validated_token = JWT_authenticator.authenticate(request)
         except:
             return Response({'detail': 'Authorization bearer token was not provided'}, status=403)
-        print(kwargs)
         try:
             obj_to_path = self.get_queryset().filter(id=self.kwargs.get('pk'))
             if (len(obj_to_path) != 1):
@@ -66,3 +65,22 @@ class ArticleEmphasisView(mixins.ListModelMixin,
         queryset = self.get_queryset().all().filter(is_emphasis=True)
         emphasis_articles = ArticleSerializer(queryset, many=True)
         return Response(emphasis_articles.data, status=200)
+
+    def patch(self, request, *args, **kwargs):
+        article_pk = self.kwargs.get('pk')
+        queryset = self.get_queryset().all().filter(id=article_pk)
+        user, validated_token = JWT_authenticator.authenticate(request)
+        
+        if not user.is_staff:
+            return Response({'detail': 'You don\'t have permission for this'}, status=401)
+
+        if (len(queryset) != 1):
+            return Response({'detail': 'Article not found'}, status=404)
+        request.data.update({})
+        print('here')
+        if queryset[0].is_emphasis:
+            request.data.update({'is_emphasis': False})
+        else:
+            request.data.update({'is_emphasis': True})
+
+        return super().partial_update(request, *args, **kwargs)

@@ -16,4 +16,5 @@ class ArticleSerializer(serializers.ModelSerializer):
             'last_edition',
             'activate',
             'cover_image',
+            'is_emphasis',
         )
