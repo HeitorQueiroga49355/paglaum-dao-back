@@ -1,5 +1,5 @@
 from .models import Article
-from .serializers import ArticleSerializer, ArticleSerializerList, ArticleSerializerCreate
+from .serializers import ArticleSerializerDetailed, ArticleSerializerList, ArticleSerializerCreate
 from rest_framework.response import Response
 from rest_framework import generics, mixins
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -49,7 +49,7 @@ class ArticleListCreate(generics.ListCreateAPIView):
 
 class ArticleRetrievePatchDelete(generics.RetrieveUpdateDestroyAPIView):
     queryset = Article.objects.all()
-    serializer_class = ArticleSerializer
+    serializer_class = ArticleSerializerDetailed
 
     def patch(self, request, make_emphasis=False, *args, **kwargs):
         try:
@@ -85,11 +85,11 @@ class ArticleEmphasisView(mixins.ListModelMixin,
                           mixins.UpdateModelMixin,
                           generics.GenericAPIView):
     queryset = Article.objects.all()
-    serializer_class = ArticleSerializer
+    serializer_class = ArticleSerializerDetailed
 
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset().all().filter(is_emphasis=True)
-        emphasis_articles = ArticleSerializer(queryset, many=True)
+        emphasis_articles = ArticleSerializerDetailed(queryset, many=True)
         return Response(emphasis_articles.data, status=200)
 
     def patch(self, request, *args, **kwargs):

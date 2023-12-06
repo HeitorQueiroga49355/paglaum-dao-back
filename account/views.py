@@ -1,5 +1,5 @@
 from .models import User, EmailConfirmationToken
-from .serializers import UserSerializer
+from .serializers import UserSerializer, UserSerializerProtected
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -22,7 +22,7 @@ class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
             logged_user = self.get_queryset().all().filter(email=user)
             return Response(UserSerializer(logged_user[0]).data)
         except Exception as error:
-            return Response({'detail': 'Authorization bearer token not provided'}, status=403)
+            return Response({'detail': 'Authorization bearer token was not provided'}, status=403)
 
 
 class UserListCreate(generics.ListCreateAPIView):
@@ -58,7 +58,7 @@ class UserListCreate(generics.ListCreateAPIView):
             else:
                 return Response({"detail": "You don't have permission for this"}, status=401)
         except Exception as error:
-            return Response({'detail': 'Authorization bearer token not provided'}, status=403)
+            return Response({'detail': 'Authorization bearer token was not provided'}, status=403)
 
 class SendEmailConfirmationTokenAPIView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -86,3 +86,31 @@ def confirm_email_view(request):
     except EmailConfirmationToken.DoesNotExist:
         data = {'is_trusty': False}
         return render(request, template_name='confirmation_email_view.html', context=data)
+
+class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    # def patch(self, request, *args, **kwargs):
+    #     try:
+    #         user, validated_token = JWT_authenticator.authenticate(request)
+    #     except:
+    #         return Response({'detail': 'Authorization bearer token was not provided'}, status=403)
+    #     request.data.update({'pk': user.id})
+    #     return super().partial_update(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user, validated_token = JWT_authenticator.authenticate(request)
+            logged_user = self.get_queryset().all().filter(email=user)
+            return Response(UserSerializer(logged_user[0]).data)
+        except Exception as error:
+            return Response({'detail': 'Authorization bearer token was not provided'}, status=403)
+
+class UserOnlyRetrieveProtected(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializerProtected

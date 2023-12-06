@@ -1,9 +1,11 @@
 from .views import (UserListCreate, SendEmailConfirmationTokenAPIView,
-                    UserRetrieveUpdate, confirm_email_view)
+                    UserRetrieveUpdate, confirm_email_view, UserOnlyRetrieveProtected)
 from django.urls import path
 
 urlpatterns = [
     path('user/', UserListCreate.as_view(), name="create_list _users"),
+    path('user/<int:pk>/', UserOnlyRetrieveProtected.as_view(),
+         name="get_other_user"),
     path('user/me', UserRetrieveUpdate.as_view(), name="create_list_users"),
     path('send-confirmation-email/',
          SendEmailConfirmationTokenAPIView.as_view(), name="check_user_email"),
