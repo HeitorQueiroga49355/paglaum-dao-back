@@ -1,5 +1,5 @@
 from .models import Article
-from .serializers import ArticleSerializer
+from .serializers import ArticleSerializer, ArticleSerializerMainPage
 from rest_framework.response import Response
 from rest_framework import generics, mixins
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -9,15 +9,16 @@ JWT_authenticator = JWTAuthentication()
 
 
 class ArticleListCreate(generics.ListCreateAPIView):
-    queryset = Article.objects.all()
-    serializer_class = ArticleSerializer
+    queryset = Article.objects.all().order_by('-publication_date')
+    serializer_class = ArticleSerializerMainPage
 
     def post(self, request, *args, **kwargs):
         try:
             user, validated_token = JWT_authenticator.authenticate(request)
-            request.data.update({'author': user.id})
+            request.data.update({'author': user.id, 'publication_date': datetime.now(
+            ), 'last_edition': datetime.now(), 'activate': True})
             return super().post(request, *args, **kwargs)
-        except:
+        except Exception as error:
             return Response({'detail': 'Authorization bearer token not provided'}, status=403)
 
 
@@ -70,7 +71,7 @@ class ArticleEmphasisView(mixins.ListModelMixin,
         article_pk = self.kwargs.get('pk')
         queryset = self.get_queryset().all().filter(id=article_pk)
         user, validated_token = JWT_authenticator.authenticate(request)
-        
+
         if not user.is_staff:
             return Response({'detail': 'You don\'t have permission for this'}, status=401)
 

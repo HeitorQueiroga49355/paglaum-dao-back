@@ -60,7 +60,6 @@ class UserListCreate(generics.ListCreateAPIView):
         except Exception as error:
             return Response({'detail': 'Authorization bearer token not provided'}, status=403)
 
-
 class SendEmailConfirmationTokenAPIView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 

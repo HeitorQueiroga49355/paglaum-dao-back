@@ -39,9 +39,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
     is_trusty = models.BooleanField(_('trusty'), default=False, help_text=_(
         'Designates whether this user has confirmed his account.'))
+    image_profile = models.ImageField(blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    biography = models.TextField(blank=True)
     
     objects = UserManager()
 
