@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from .models import Article
-from account.serializers import UserSerializerBasicData
+from account.serializers import UserSerializerBasicData, UserSerializer
 
 
 class ArticleSerializer(serializers.ModelSerializer):
-    author = UserSerializerBasicData(read_only=True)
+    author = UserSerializer
 
     class Meta:
         model = Article
@@ -22,10 +22,26 @@ class ArticleSerializer(serializers.ModelSerializer):
         )
 
 
-class ArticleSerializerMainPage(serializers.ModelSerializer):
+class ArticleSerializerList(serializers.ModelSerializer):
     content = serializers.CharField(max_length=None, write_only=True)
-    author = UserSerializerBasicData()
+    author = UserSerializerBasicData(many=False, read_only=False)
 
+    class Meta:
+        model = Article
+        fields = (
+            'id',
+            'title',
+            'subtitle',
+            'author',
+            'publication_date',
+            'last_edition',
+            'activate',
+            'content',
+            'cover_image',
+            'is_emphasis',
+        )
+
+class ArticleSerializerCreate(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = (

@@ -17,6 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
             'date_joined',
             'is_trusty',
             'image_profile',
+            'biography',
         )
 
 class UserSerializerBasicData(serializers.ModelSerializer):

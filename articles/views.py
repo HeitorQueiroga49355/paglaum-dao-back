@@ -1,5 +1,5 @@
 from .models import Article
-from .serializers import ArticleSerializer, ArticleSerializerMainPage
+from .serializers import ArticleSerializer, ArticleSerializerList, ArticleSerializerCreate
 from rest_framework.response import Response
 from rest_framework import generics, mixins
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -10,14 +10,39 @@ JWT_authenticator = JWTAuthentication()
 
 class ArticleListCreate(generics.ListCreateAPIView):
     queryset = Article.objects.all().order_by('-publication_date')
-    serializer_class = ArticleSerializerMainPage
+    serializer_class = ArticleSerializerList
+
+    def get(self, request, *args, **kwargs):
+        author_pk = self.kwargs.get('author_pk')
+        if author_pk is not None:
+            limit = request.query_params.get('limit', 20)
+            offset = request.query_params.get('offset', 0)
+
+            try:
+                limit = int(limit)
+                offset = int(offset)
+            except ValueError:
+                return Response({'detail': 'Invalid limit or offset values'}, status=400)
+            all_queryset = self.get_queryset().all().filter(author__id=author_pk)
+            count = all_queryset.count()
+            queryset = all_queryset[offset:offset + limit]
+            serializer = ArticleSerializerList(queryset, many=True)
+            return Response({'count': count, 'results': serializer.data}, status=200)
+        else:
+            return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         try:
             user, validated_token = JWT_authenticator.authenticate(request)
-            request.data.update({'author': user.id, 'publication_date': datetime.now(
-            ), 'last_edition': datetime.now(), 'activate': True})
-            return super().post(request, *args, **kwargs)
+            request.data.update({'author':  user.id,
+                                 'publication_date': datetime.now(),
+                                 'last_edition': datetime.now(),
+                                 'activate': True})
+            serializer = ArticleSerializerCreate(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            article = serializer.save()
+
+            return Response(serializer.data, status=201)
         except Exception as error:
             return Response({'detail': 'Authorization bearer token not provided'}, status=403)
 

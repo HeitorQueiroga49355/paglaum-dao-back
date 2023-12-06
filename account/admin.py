@@ -13,6 +13,7 @@ class UserAdmin(admin.ModelAdmin):
         'is_active',
         'date_joined',
         'is_trusty',
+        'biography',
     )
 
 @admin.register(EmailConfirmationToken)
