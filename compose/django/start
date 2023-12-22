@@ -1,0 +1,24 @@
+#!/bin/bash
+# Esta linha indica que o script será interpretado pelo Bash, um shell de linha de comando.
+
+set -o errexit
+# Faz com que o script seja encerrado se qualquer comando retornar um status de saída diferente de zero.
+
+set -o pipefail
+# Faz com que o status de saída de um pipeline (uma sequência de comandos conectados por pipes |) seja o status de saída do último comando que falhou (retornou um status diferente de zero).
+
+set -o nounset
+# Faz com que o script seja encerrado se uma variável não definida for usada.
+
+python manage.py collectstatic --noinput
+# Executa o comando collectstatic. A flag --noinput significa que o comando não deve ter interação com o usuario, aceitando todas as perguntas feitas
+
+python manage.py migrate
+# Essa linha executa o comando migrate do django para criar as tabelas e campos do model
+
+
+exec /usr/local/bin/gunicorn core.wsgi --bind 0.0.0.0:8000 --chdir=/home/app
+# /usr/local/bin/gunicorn  -->  Indica o caminho para o executavel do gunicorn
+# project.wsgi  -->  Arquivo wsgi que define a aplicação que será servida
+# --bind 0.0.0.0:8000  -->  Especifica o endereço IP e a porta pra o servidor gunicorn. Está configurado para executar em todas as interfaces de rede, na porta 8000
+# --chdir=/home/app  -->  Muda o diretorio de trabalho antes de iniciar o gunicorn

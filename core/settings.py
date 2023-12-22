@@ -83,8 +83,8 @@ DATABASES = {
         "NAME": "paglaumdaoback",
         "USER": "django",
         "PASSWORD": "heitorelindoegostoso",
-        "HOST": "localhost",
-        "PORT": '',
+        "HOST": "postgres",
+        "PORT": '5432',
     }
 }
 

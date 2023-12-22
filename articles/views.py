@@ -1,5 +1,5 @@
 from .models import Article
-from .serializers import ArticleSerializerDetailed, ArticleSerializerList, ArticleSerializerCreate
+from .serializers import ArticleSerializerDetailed, ArticleSerializerList, ArticleSerializerCreateAndUpdate
 from rest_framework.response import Response
 from rest_framework import generics, mixins
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -38,12 +38,13 @@ class ArticleListCreate(generics.ListCreateAPIView):
                                  'publication_date': datetime.now(),
                                  'last_edition': datetime.now(),
                                  'activate': True})
-            serializer = ArticleSerializerCreate(data=request.data)
+            serializer = ArticleSerializerCreateAndUpdate(data=request.data)
             serializer.is_valid(raise_exception=True)
             article = serializer.save()
 
             return Response(serializer.data, status=201)
         except Exception as error:
+            print(error)
             return Response({'detail': 'Authorization bearer token not provided'}, status=403)
 
 
@@ -52,6 +53,8 @@ class ArticleRetrievePatchDelete(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ArticleSerializerDetailed
 
     def patch(self, request, make_emphasis=False, *args, **kwargs):
+        print(request)
+        request.data._mutable = True
         try:
             user, validated_token = JWT_authenticator.authenticate(request)
         except:
@@ -61,13 +64,14 @@ class ArticleRetrievePatchDelete(generics.RetrieveUpdateDestroyAPIView):
             if (len(obj_to_path) != 1):
                 return Response({'detail': 'object not found'}, status=404)
             else:
-                request.data.update(
-                    {'publication_date': obj_to_path[0].get_publication_date(),
-                     'author': user.id,
-                     'last_edition': datetime.now()})
+                request.data.update({
+                    'publication_date': obj_to_path[0].get_publication_date(),
+                    'author': user.id,
+                    'last_edition': datetime.now()
+                })
                 return super().partial_update(request, *args, **kwargs)
         except Exception as error:
-            return Response({'detail': error}, status=400)
+            return Response({'detail': str(error)}, status=400)
 
     def delete(self, request, *args, **kwargs):
         try:
@@ -103,7 +107,6 @@ class ArticleEmphasisView(mixins.ListModelMixin,
         if (len(queryset) != 1):
             return Response({'detail': 'Article not found'}, status=404)
         request.data.update({})
-        print('here')
         if queryset[0].is_emphasis:
             request.data.update({'is_emphasis': False})
         else:

@@ -47,14 +47,7 @@ class ArticleSerializerList(serializers.ModelSerializer):
             'is_emphasis',
         )
 
-    # def to_representation(self, instance):
-    #     representation = super().to_representation(instance)
-    #     representation['cover_image'] = self.content['cover_image'].build_absolute_uri(
-    #         representation['cover_image'])
-    #     return representation
-
-
-class ArticleSerializerCreate(serializers.ModelSerializer):
+class ArticleSerializerCreateAndUpdate(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = (

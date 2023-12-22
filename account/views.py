@@ -45,7 +45,7 @@ class UserListCreate(generics.ListCreateAPIView):
             if (len(missing_fields) > 0):
                 return Response(missing_fields, status=400)
             new_user = User.objects.create_user(
-                request.data['username'], request.data['email'], request.data['password'])
+                request.data['username'], request.data['email'], request.data['password'], request.data['image_profile'])
         except Exception as error:
             return Response({"detail": error.__str__()}, status=400)
         return Response(UserSerializer(new_user).data)
@@ -94,14 +94,6 @@ class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
-
-    # def patch(self, request, *args, **kwargs):
-    #     try:
-    #         user, validated_token = JWT_authenticator.authenticate(request)
-    #     except:
-    #         return Response({'detail': 'Authorization bearer token was not provided'}, status=403)
-    #     request.data.update({'pk': user.id})
-    #     return super().partial_update(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         try:

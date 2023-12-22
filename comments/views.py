@@ -1,5 +1,5 @@
 from .models import Comment
-from .serializers import CommentSerializer
+from .serializers import CommentSerializer, CommentSerializerCreate
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -37,10 +37,15 @@ class CommentListCreateAll(generics.ListCreateAPIView):
                 'author': user.pk,
                 'publication_date': datetime.now(),
                 'last_edition': datetime.now(),
-                'of_article': article_pk, 
+                'of_article': article_pk,
                 'active': True
             })
-            return super().create(request, *args, **kwargs)
+            serializer = CommentSerializerCreate(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            return Response(serializer.data, status=201)
+
         except TypeError as error:
             return Response({'detail': 'Authorization bearer token was not provided'}, status=403)
         except Exception as error:

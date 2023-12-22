@@ -4,7 +4,12 @@ from env import API_BASE
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    image_profile = serializers.SerializerMethodField()
 
+    def get_image_profile(self, user):
+        photo_url = user.image_profile
+        return API_BASE + 'media/' + str(photo_url)
     class Meta:
         model = User
         fields = '__all__'
