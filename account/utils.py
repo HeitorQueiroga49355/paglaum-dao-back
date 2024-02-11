@@ -13,3 +13,6 @@ def send_confirmation_email(email, token_id, user_id):
               recipient_list=[email],
               fail_silently=True,
     )
+
+class GhostUserClass:
+    is_staff = False

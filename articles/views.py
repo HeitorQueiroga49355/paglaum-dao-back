@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import generics, mixins
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import datetime
+from account.utils import GhostUserClass
 
 JWT_authenticator = JWTAuthentication()
 
@@ -29,7 +30,16 @@ class ArticleListCreate(generics.ListCreateAPIView):
             serializer = ArticleSerializerList(queryset, many=True)
             return Response({'count': count, 'results': serializer.data}, status=200)
         else:
-            return super().get(request, *args, **kwargs)
+            try:
+                user, validated_token = JWT_authenticator.authenticate(request)
+                # user = {'is_staff': True}
+            except:
+                user = GhostUserClass()
+            if user.is_staff:
+                articles = self.queryset.filter()
+            else:
+                articles = self.queryset.filter(active=True)
+            return Response({'results': self.serializer_class(articles, many=True).data}, status=200)
 
     def post(self, request, *args, **kwargs):
         try:
@@ -37,12 +47,12 @@ class ArticleListCreate(generics.ListCreateAPIView):
             request.data.update({'author':  user.id,
                                  'publication_date': datetime.now(),
                                  'last_edition': datetime.now(),
-                                 'activate': True})
+                                 'active': True})
             serializer = ArticleSerializerCreateAndUpdate(data=request.data)
             serializer.is_valid(raise_exception=True)
-            article = serializer.save()
+            serializer.save()
 
-            return Response(serializer.data, status=201)
+            return Response({'detail': 'Successful article creation'}, status=201)
         except Exception as error:
             print(error)
             return Response({'detail': 'Authorization bearer token not provided'}, status=403)
@@ -53,36 +63,53 @@ class ArticleRetrievePatchDelete(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ArticleSerializerDetailed
 
     def patch(self, request, make_emphasis=False, *args, **kwargs):
-        print(request)
         request.data._mutable = True
         try:
             user, validated_token = JWT_authenticator.authenticate(request)
         except:
             return Response({'detail': 'Authorization bearer token was not provided'}, status=403)
         try:
-            obj_to_path = self.get_queryset().filter(id=self.kwargs.get('pk'))
-            if (len(obj_to_path) != 1):
+            article = self.get_queryset().filter(id=self.kwargs.get('pk'))
+            if (len(article) != 1):
                 return Response({'detail': 'object not found'}, status=404)
             else:
-                request.data.update({
-                    'publication_date': obj_to_path[0].get_publication_date(),
-                    'author': user.id,
-                    'last_edition': datetime.now()
-                })
-                return super().partial_update(request, *args, **kwargs)
+                if (article[0].author == user or user.is_staff):
+                    request.data.update({
+                        'publication_date': article[0].get_publication_date(),
+                        'author': user.id,
+                        'last_edition': datetime.now()
+                    })
+                    return super().partial_update(request, *args, **kwargs)
+                else:
+                    return Response({'detail': "You don't have permission for this"}, status=401)
         except Exception as error:
             return Response({'detail': str(error)}, status=400)
 
     def delete(self, request, *args, **kwargs):
         try:
             user, validated_token = JWT_authenticator.authenticate(request)
-            if (user.is_staff):
-                request.data.update({'activate': False})
+            article = self.get_queryset().filter(id=self.kwargs.get('pk'))
+            if (user.is_staff or article.author == user):
+                request.data.update({'active': False})
+                print('here3')
                 return super().patch(request, *args, **kwargs)
             else:
                 return Response({'detail': 'Authorization bearer token not provided'}, status=403)
-        except:
-            return Response({'detail': 'Authorization bearer token not provided'}, status=403)
+        except Exception as error:
+            return Response({'detail': str(error)}, status=403)
+
+
+class ArticleDeepDelete(generics.DestroyAPIView):
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializerDetailed
+
+    def delete(self, request, *args, **kwargs):
+        user, validated_token = JWT_authenticator.authenticate(request)
+        if (user.is_staff):
+            # article = self.qu
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response({'detail': 'You don\'t have permission for this'})
 
 
 class ArticleEmphasisView(mixins.ListModelMixin,
