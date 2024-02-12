@@ -5,6 +5,7 @@ from rest_framework import generics, mixins
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import datetime
 from account.utils import GhostUserClass
+from django.core.files.storage import FileSystemStorage
 
 JWT_authenticator = JWTAuthentication()
 
@@ -106,10 +107,14 @@ class ArticleDeepDelete(generics.DestroyAPIView):
     def delete(self, request, *args, **kwargs):
         user, validated_token = JWT_authenticator.authenticate(request)
         if (user.is_staff):
-            # article = self.qu
+            pk = self.kwargs.get('pk')
+            article = self.queryset.get(pk=pk)
+            fs = FileSystemStorage()
+            print(article.cover_image.path)
+            fs.delete(article.cover_image.path)
             return super().destroy(request, *args, **kwargs)
         else:
-            return Response({'detail': 'You don\'t have permission for this'})
+            return Response({'detail': 'You don\'t have permission for this'}, status=403)
 
 
 class ArticleEmphasisView(mixins.ListModelMixin,
