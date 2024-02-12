@@ -16,10 +16,11 @@ class ArticleSerializerDetailed(serializers.ModelSerializer):
             'author',
             'publication_date',
             'last_edition',
-            'active',
+            'is_active',
             'content',
             'cover_image',
             'is_emphasis',
+            'slug',
         )
 
 
@@ -41,10 +42,11 @@ class ArticleSerializerList(serializers.ModelSerializer):
             'author',
             'publication_date',
             'last_edition',
-            'active',
+            'is_active',
             'content',
             'cover_image',
             'is_emphasis',
+            'slug',
         )
 
 class ArticleSerializerCreateAndUpdate(serializers.ModelSerializer):
@@ -57,8 +59,9 @@ class ArticleSerializerCreateAndUpdate(serializers.ModelSerializer):
             'author',
             'publication_date',
             'last_edition',
-            'active',
+            'is_active',
             'content',
             'cover_image',
             'is_emphasis',
+            'slug'
         )

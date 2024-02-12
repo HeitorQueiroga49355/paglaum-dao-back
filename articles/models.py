@@ -13,7 +13,7 @@ class Article(models.Model):
     content = models.TextField(blank=False)
     publication_date = models.DateTimeField(blank=False, default=datetime.now)
     last_edition = models.DateTimeField(blank=False, default=datetime.now)
-    active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
     cover_image = models.ImageField(blank=True)
     is_emphasis = models.BooleanField(default=False)
     slug = models.SlugField(max_length=300, null=True, blank=True)

@@ -33,44 +33,44 @@ class ArticleListCreate(generics.ListCreateAPIView):
         else:
             try:
                 user, validated_token = JWT_authenticator.authenticate(request)
-                # user = {'is_staff': True}
             except:
                 user = GhostUserClass()
             if user.is_staff:
                 articles = self.queryset.filter()
             else:
-                articles = self.queryset.filter(active=True)
+                articles = self.queryset.filter(is_active=True)
             return Response({'results': self.serializer_class(articles, many=True).data}, status=200)
 
     def post(self, request, *args, **kwargs):
-        try:
-            user, validated_token = JWT_authenticator.authenticate(request)
+        user, validated_token = JWT_authenticator.authenticate(request)
+        if user.is_staff:
             request.data.update({'author':  user.id,
                                  'publication_date': datetime.now(),
                                  'last_edition': datetime.now(),
-                                 'active': True})
+                                 'is_active': True})
             serializer = ArticleSerializerCreateAndUpdate(data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-
             return Response({'detail': 'Successful article creation'}, status=201)
-        except Exception as error:
-            print(error)
-            return Response({'detail': 'Authorization bearer token not provided'}, status=403)
+        else:
+            return Response({'detail': 'You don\'t have permission for this'}, status=403)
 
 
 class ArticleRetrievePatchDelete(generics.RetrieveUpdateDestroyAPIView):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializerDetailed
 
+    def get(self, request, *args, **kwargs):
+        article = self.queryset.filter(slug=self.kwargs.get('slug')).first()
+        if article.is_active:
+            return Response(self.serializer_class(article).data, status=200)
+        return super().get(request, *args, **kwargs)
+
     def patch(self, request, make_emphasis=False, *args, **kwargs):
         request.data._mutable = True
+        user, validated_token = JWT_authenticator.authenticate(request)
         try:
-            user, validated_token = JWT_authenticator.authenticate(request)
-        except:
-            return Response({'detail': 'Authorization bearer token was not provided'}, status=403)
-        try:
-            article = self.get_queryset().filter(id=self.kwargs.get('pk'))
+            article = self.get_queryset().filter(slug=self.kwargs.get('slug'))
             if (len(article) != 1):
                 return Response({'detail': 'object not found'}, status=404)
             else:
@@ -89,11 +89,29 @@ class ArticleRetrievePatchDelete(generics.RetrieveUpdateDestroyAPIView):
     def delete(self, request, *args, **kwargs):
         try:
             user, validated_token = JWT_authenticator.authenticate(request)
-            article = self.get_queryset().filter(id=self.kwargs.get('pk'))
-            if (user.is_staff or article.author == user):
-                request.data.update({'active': False})
-                print('here3')
-                return super().patch(request, *args, **kwargs)
+            if (user.is_staff):
+                article = self.get_queryset().filter(slug=self.kwargs.get('slug')).first()
+                article.is_active = False
+                article.save()
+                return Response({'detail': 'Article deactivated'})
+            else:
+                return Response({'detail': 'Authorization bearer token not provided'}, status=403)
+        except Exception as error:
+            return Response({'detail': str(error)}, status=403)
+
+
+class ActivateArticle(generics.UpdateAPIView):
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializerDetailed
+
+    def patch(self, request, *args, **kwargs):
+        try:
+            user, validated_token = JWT_authenticator.authenticate(request)
+            if (user.is_staff):
+                article = self.get_queryset().filter(slug=self.kwargs.get('slug')).first()
+                article.is_active = True
+                article.save()
+                return Response({'detail': 'Article activated'})
             else:
                 return Response({'detail': 'Authorization bearer token not provided'}, status=403)
         except Exception as error:
@@ -110,7 +128,6 @@ class ArticleDeepDelete(generics.DestroyAPIView):
             pk = self.kwargs.get('pk')
             article = self.queryset.get(pk=pk)
             fs = FileSystemStorage()
-            print(article.cover_image.path)
             fs.delete(article.cover_image.path)
             return super().destroy(request, *args, **kwargs)
         else:
