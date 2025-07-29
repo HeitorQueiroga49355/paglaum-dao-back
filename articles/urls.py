@@ -3,10 +3,10 @@ from django.urls import path
 
 urlpatterns = [
     path('articles/', ArticleListCreate.as_view(), name="create_list_articles"),
-    path('articles/<slug:slug>/', ArticleRetrievePatchDelete.as_view(),
-         name="retrieve_deactivate_update_article"),
     path('articles/emphasis/', ArticleEmphasisView.as_view(),
          name="list_emphasis_articles"),
+    path('articles/<slug:slug>/', ArticleRetrievePatchDelete.as_view(),
+         name="retrieve_deactivate_update_article"),
     path('articles/make_emphasis/<int:pk>/',
          ArticleEmphasisView.as_view(), name="make_emphasis"),
     path('author/<int:author_pk>/articles/',
